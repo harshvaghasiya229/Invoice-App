@@ -9,6 +9,15 @@ dotenv.config();
 
 const app = express();
 
+// Set Content Security Policy to allow fonts, styles, images, etc.
+app.use((req, res, next) => {
+  res.setHeader(
+    "Content-Security-Policy",
+    "default-src 'self'; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self'; img-src 'self' data:;"
+  );
+  next();
+});
+
 // Middleware
 const corsOptions = {
   origin: ['https://invoice-app-ecru-nu.vercel.app'], // Add your Vercel frontend URL here
