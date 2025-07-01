@@ -10,7 +10,12 @@ dotenv.config();
 const app = express();
 
 // Middleware
-app.use(cors());
+const corsOptions = {
+  origin: ['https://invoice-app-ecru-nu.vercel.app'], // Add your Vercel frontend URL here
+  credentials: true, // if you use cookies or authentication
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
