@@ -113,60 +113,64 @@ router.post('/import-excel', upload.single('file'), async (req, res) => {
     
     const customers = [];
     const errors = [];
-    
+    const names = rows.map(row => row[0]).filter(Boolean);
+    const gstins = rows.map(row => row[3]).filter(Boolean);
+    // Fetch all existing customers with these names or GSTINs in one query
+    const existingCustomers = await Customer.find({
+      $or: [
+        { name: { $in: names } },
+        { gstin: { $in: gstins } }
+      ]
+    });
+    const existingNames = new Set(existingCustomers.map(c => c.name));
+    const existingGstins = new Set(existingCustomers.map(c => c.gstin));
+
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
       if (row.length === 0 || !row[0]) continue; // Skip empty rows
-      
+      const customerData = {
+        name: row[0] || '',           // Business Name column
+        address: row[1] || '',        // Business Address column
+        phone: row[2] || '',          // Contact Number column
+        gstin: row[3] || '',          // GST No column
+        email: `customer${Date.now()}_${i}@example.com`, // Generate unique email
+        isActive: true                 // Default active status
+      };
+      // Validate required fields
+      if (!customerData.name) {
+        errors.push(`Row ${i + 2}: Missing business name`);
+        continue;
+      }
+      // Check for duplicates in bulk
+      if (existingNames.has(customerData.name) || (customerData.gstin && existingGstins.has(customerData.gstin))) {
+        errors.push(`Row ${i + 2}: Customer "${customerData.name}" already exists`);
+        continue;
+      }
+      customers.push(customerData);
+    }
+    // Insert all valid customers at once
+    let insertedCustomers = [];
+    if (customers.length > 0) {
       try {
-        const customerData = {
-          name: row[0] || '',           // Business Name column
-          address: row[1] || '',        // Business Address column
-          phone: row[2] || '',          // Contact Number column
-          gstin: row[3] || '',          // GST No column
-          email: `customer${Date.now()}_${i}@example.com`, // Generate unique email
-          isActive: true                 // Default active status
-        };
-        
-        // Validate required fields
-        if (!customerData.name) {
-          errors.push(`Row ${i + 2}: Missing business name`);
-          continue;
+        insertedCustomers = await Customer.insertMany(customers, { ordered: false });
+      } catch (bulkErr) {
+        // If some inserts fail, collect errors
+        if (bulkErr.writeErrors) {
+          bulkErr.writeErrors.forEach(e => {
+            errors.push(`Bulk insert error: ${e.errmsg}`);
+          });
         }
-        
-        // Check if customer already exists (by name or GSTIN)
-        const existingCustomer = await Customer.findOne({
-          $or: [
-            { name: customerData.name },
-            { gstin: customerData.gstin }
-          ]
-        });
-        
-        if (existingCustomer) {
-          errors.push(`Row ${i + 2}: Customer "${customerData.name}" already exists`);
-          continue;
-        }
-        
-        const customer = new Customer(customerData);
-        await customer.save();
-        customers.push(customer);
-        
-      } catch (error) {
-        errors.push(`Row ${i + 2}: ${error.message}`);
       }
     }
-    
     // Clean up uploaded file
     const fs = require('fs');
     fs.unlinkSync(req.file.path);
-    
     res.json({
-      message: `Successfully imported ${customers.length} customers`,
-      imported: customers.length,
+      message: `Successfully imported ${insertedCustomers.length} customers`,
+      imported: insertedCustomers.length,
       errors: errors,
-      customers: customers
+      customers: insertedCustomers
     });
-    
   } catch (err) {
     // Clean up uploaded file on error
     if (req.file) {
@@ -177,7 +181,6 @@ router.post('/import-excel', upload.single('file'), async (req, res) => {
         console.error('Error cleaning up file:', cleanupError);
       }
     }
-    
     res.status(500).json({ message: err.message });
   }
 });

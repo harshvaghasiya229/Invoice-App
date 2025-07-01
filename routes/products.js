@@ -113,53 +113,56 @@ router.post('/import-excel', upload.single('file'), async (req, res) => {
     
     const products = [];
     const errors = [];
-    
+    const names = rows.map(row => row[0]).filter(Boolean);
+    // Fetch all existing products with these names in one query
+    const existingProducts = await Product.find({ name: { $in: names } });
+    const existingNames = new Set(existingProducts.map(p => p.name));
+
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
       if (row.length === 0 || !row[0]) continue; // Skip empty rows
-      
+      const productData = {
+        name: row[0] || '',           // Products column
+        hsnCode: row[1] || '',        // HSN column
+        rate: parseFloat(row[2]) || 0, // Price column
+        unit: 'Nos',                  // Default unit
+        isActive: true                 // Default active status
+      };
+      // Validate required fields
+      if (!productData.name || productData.rate <= 0) {
+        errors.push(`Row ${i + 2}: Missing product name or invalid price`);
+        continue;
+      }
+      // Check for duplicates in bulk
+      if (existingNames.has(productData.name)) {
+        errors.push(`Row ${i + 2}: Product "${productData.name}" already exists`);
+        continue;
+      }
+      products.push(productData);
+    }
+    // Insert all valid products at once
+    let insertedProducts = [];
+    if (products.length > 0) {
       try {
-        const productData = {
-          name: row[0] || '',           // Products column
-          hsnCode: row[1] || '',        // HSN column
-          rate: parseFloat(row[2]) || 0, // Price column
-          unit: 'Nos',                  // Default unit
-          isActive: true                 // Default active status
-        };
-        
-        // Validate required fields
-        if (!productData.name || productData.rate <= 0) {
-          errors.push(`Row ${i + 2}: Missing product name or invalid price`);
-          continue;
+        insertedProducts = await Product.insertMany(products, { ordered: false });
+      } catch (bulkErr) {
+        // If some inserts fail, collect errors
+        if (bulkErr.writeErrors) {
+          bulkErr.writeErrors.forEach(e => {
+            errors.push(`Bulk insert error: ${e.errmsg}`);
+          });
         }
-        
-        // Check if product already exists
-        const existingProduct = await Product.findOne({ name: productData.name });
-        if (existingProduct) {
-          errors.push(`Row ${i + 2}: Product "${productData.name}" already exists`);
-          continue;
-        }
-        
-        const product = new Product(productData);
-        await product.save();
-        products.push(product);
-        
-      } catch (error) {
-        errors.push(`Row ${i + 2}: ${error.message}`);
       }
     }
-    
     // Clean up uploaded file
     const fs = require('fs');
     fs.unlinkSync(req.file.path);
-    
     res.json({
-      message: `Successfully imported ${products.length} products`,
-      imported: products.length,
+      message: `Successfully imported ${insertedProducts.length} products`,
+      imported: insertedProducts.length,
       errors: errors,
-      products: products
+      products: insertedProducts
     });
-    
   } catch (err) {
     // Clean up uploaded file on error
     if (req.file) {
@@ -170,7 +173,6 @@ router.post('/import-excel', upload.single('file'), async (req, res) => {
         console.error('Error cleaning up file:', cleanupError);
       }
     }
-    
     res.status(500).json({ message: err.message });
   }
 });
