@@ -1,7 +1,7 @@
 // API Configuration for different environments
 const config = {
   development: {
-    API_BASE_URL: 'http://localhost:5050',
+    API_BASE_URL: 'http://localhost:5000/api',
   },
   production: {
     API_BASE_URL: 'https://invoice-app-backend-xr3h.onrender.com/api',

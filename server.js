@@ -21,8 +21,11 @@ app.use((req, res, next) => {
 
 // Middleware
 const corsOptions = {
-  origin: ['https://invoice-app-ecru-nu.vercel.app'], // Add your Vercel frontend URL here
-  credentials: true, // if you use cookies or authentication
+  origin: [
+    'http://localhost:3000',
+    'https://invoice-app-ecru-nu.vercel.app'
+  ], // Allow local and deployed frontend
+  credentials: true,
 };
 
 app.use(cors(corsOptions));
