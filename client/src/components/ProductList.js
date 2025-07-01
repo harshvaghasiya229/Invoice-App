@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FaPlus, FaEdit, FaTrash, FaSearch, FaFileExcel, FaTag, FaBarcode, FaBox } from 'react-icons/fa';
-import axios from 'axios';
+import api from '../utils/api';
 import { toast } from 'react-toastify';
 import ExcelImport from './ExcelImport';
 
@@ -17,7 +17,7 @@ const ProductList = () => {
 
   const fetchProducts = async () => {
     try {
-      const response = await axios.get('/api/products');
+      const response = await api.get('/products');
       setProducts(response.data);
       setLoading(false);
     } catch (error) {
@@ -30,7 +30,7 @@ const ProductList = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this product?')) {
       try {
-        await axios.delete(`/api/products/${id}`);
+        await api.delete(`/products/${id}`);
         toast.success('Product deleted successfully');
         fetchProducts();
       } catch (error) {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FaPlus, FaTrash, FaSave, FaTimes } from 'react-icons/fa';
-import axios from 'axios';
+import api from '../utils/api';
 import { toast } from 'react-toastify';
 import DatePicker from 'react-datepicker';
 import Select from 'react-select';
@@ -64,7 +64,7 @@ const InvoiceForm = () => {
 
   const fetchCustomers = async () => {
     try {
-      const response = await axios.get('/api/customers');
+      const response = await api.get('/customers');
       setCustomers(response.data);
     } catch (error) {
       console.error('Error fetching customers:', error);
@@ -73,7 +73,7 @@ const InvoiceForm = () => {
 
   const fetchProducts = async () => {
     try {
-      const response = await axios.get('/api/products');
+      const response = await api.get('/products');
       setProducts(response.data);
     } catch (error) {
       console.error('Error fetching products:', error);
@@ -82,7 +82,7 @@ const InvoiceForm = () => {
 
   const fetchInvoice = async () => {
     try {
-      const response = await axios.get(`/api/invoices/${id}`);
+      const response = await api.get(`/invoices/${id}`);
       const invoice = response.data;
       setFormData({
         ...invoice,
@@ -287,10 +287,10 @@ const InvoiceForm = () => {
       }
 
       if (id) {
-        await axios.put(`/api/invoices/${id}`, formData);
+        await api.put(`/invoices/${id}`, formData);
         toast.success('Invoice updated successfully');
       } else {
-        await axios.post('/api/invoices', formData);
+        await api.post('/invoices', formData);
         toast.success('Invoice created successfully');
       }
       navigate('/invoices');

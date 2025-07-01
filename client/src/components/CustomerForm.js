@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FaSave, FaTimes } from 'react-icons/fa';
-import axios from 'axios';
+import api from '../utils/api';
 import { toast } from 'react-toastify';
 
 const CustomerForm = () => {
@@ -25,7 +25,7 @@ const CustomerForm = () => {
 
   const fetchCustomer = async () => {
     try {
-      const response = await axios.get(`/api/customers/${id}`);
+      const response = await api.get(`/customers/${id}`);
       setFormData(response.data);
     } catch (error) {
       console.error('Error fetching customer:', error);
@@ -46,10 +46,10 @@ const CustomerForm = () => {
 
     try {
       if (id) {
-        await axios.put(`/api/customers/${id}`, formData);
+        await api.put(`/customers/${id}`, formData);
         toast.success('Customer updated successfully');
       } else {
-        await axios.post('/api/customers', formData);
+        await api.post('/customers', formData);
         toast.success('Customer created successfully');
       }
       navigate('/customers');

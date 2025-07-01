@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FaPlus, FaEdit, FaTrash, FaSearch, FaEye, FaFileExcel, FaPhone, FaMapMarkerAlt, FaIdCard } from 'react-icons/fa';
-import axios from 'axios';
+import api from '../utils/api';
 import { toast } from 'react-toastify';
 import CustomerExcelImport from './CustomerExcelImport';
 
@@ -17,7 +17,7 @@ const CustomerList = () => {
 
   const fetchCustomers = async () => {
     try {
-      const response = await axios.get('/api/customers');
+      const response = await api.get('/customers');
       setCustomers(response.data);
       setLoading(false);
     } catch (error) {
@@ -30,7 +30,7 @@ const CustomerList = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this customer?')) {
       try {
-        await axios.delete(`/api/customers/${id}`);
+        await api.delete(`/customers/${id}`);
         toast.success('Customer deleted successfully');
         fetchCustomers();
       } catch (error) {

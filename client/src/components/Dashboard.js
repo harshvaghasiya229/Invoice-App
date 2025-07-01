@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FaReceipt, FaUsers, FaBoxes, FaPlus, FaEye } from 'react-icons/fa';
-import axios from 'axios';
+import api from '../utils/api';
 import { toast } from 'react-toastify';
 
 const Dashboard = () => {
@@ -21,9 +21,9 @@ const Dashboard = () => {
   const fetchDashboardData = async () => {
     try {
       const [invoicesRes, customersRes, productsRes] = await Promise.all([
-        axios.get('/api/invoices'),
-        axios.get('/api/customers'),
-        axios.get('/api/products')
+        api.get('/invoices'),
+        api.get('/customers'),
+        api.get('/products')
       ]);
 
       const invoices = invoicesRes.data;

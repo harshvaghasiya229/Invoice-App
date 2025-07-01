@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FaPrint, FaDownload, FaEdit, FaArrowLeft, FaShare } from 'react-icons/fa';
-import axios from 'axios';
+import api from '../utils/api';
 import { toast } from 'react-toastify';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
@@ -19,7 +19,7 @@ const InvoiceView = () => {
 
   const fetchInvoice = async () => {
     try {
-      const response = await axios.get(`/api/invoices/${id}`);
+      const response = await api.get(`/invoices/${id}`);
       setInvoice(response.data);
       setLoading(false);
     } catch (error) {
@@ -35,7 +35,7 @@ const InvoiceView = () => {
 
   const handleDownloadPDF = async () => {
     try {
-      const response = await axios.get(`/api/invoices/${id}/pdf`, {
+      const response = await api.get(`/invoices/${id}/pdf`, {
         responseType: 'blob'
       });
       

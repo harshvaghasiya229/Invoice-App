@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { FaUpload, FaDownload, FaFileExcel, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
-import axios from 'axios';
+import api from '../utils/api';
 import { toast } from 'react-toastify';
 
 const ExcelImport = ({ onImportComplete }) => {
@@ -37,7 +37,7 @@ const ExcelImport = ({ onImportComplete }) => {
     formData.append('file', file);
 
     try {
-      const response = await axios.post('/api/products/import-excel', formData, {
+      const response = await api.post('/products/import-excel', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -65,7 +65,7 @@ const ExcelImport = ({ onImportComplete }) => {
 
   const downloadTemplate = async () => {
     try {
-      const response = await axios.get('/api/products/template/download', {
+      const response = await api.get('/products/template/download', {
         responseType: 'blob',
       });
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FaSave, FaTimes } from 'react-icons/fa';
-import axios from 'axios';
+import api from '../utils/api';
 import { toast } from 'react-toastify';
 
 const ProductForm = () => {
@@ -24,7 +24,7 @@ const ProductForm = () => {
 
   const fetchProduct = async () => {
     try {
-      const response = await axios.get(`/api/products/${id}`);
+      const response = await api.get(`/products/${id}`);
       setFormData(response.data);
     } catch (error) {
       console.error('Error fetching product:', error);
@@ -45,10 +45,10 @@ const ProductForm = () => {
 
     try {
       if (id) {
-        await axios.put(`/api/products/${id}`, formData);
+        await api.put(`/products/${id}`, formData);
         toast.success('Product updated successfully');
       } else {
-        await axios.post('/api/products', formData);
+        await api.post('/products', formData);
         toast.success('Product created successfully');
       }
       navigate('/products');

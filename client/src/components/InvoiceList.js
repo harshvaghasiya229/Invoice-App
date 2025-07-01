@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FaPlus, FaEye, FaEdit, FaTrash, FaSearch } from 'react-icons/fa';
-import axios from 'axios';
+import api from '../utils/api';
 import { toast } from 'react-toastify';
 
 const InvoiceList = () => {
@@ -17,7 +17,7 @@ const InvoiceList = () => {
 
   const fetchInvoices = async () => {
     try {
-      const response = await axios.get('/api/invoices');
+      const response = await api.get('/invoices');
       setInvoices(response.data);
       setLoading(false);
     } catch (error) {
@@ -30,7 +30,7 @@ const InvoiceList = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this invoice?')) {
       try {
-        await axios.delete(`/api/invoices/${id}`);
+        await api.delete(`/invoices/${id}`);
         toast.success('Invoice deleted successfully');
         fetchInvoices();
       } catch (error) {
